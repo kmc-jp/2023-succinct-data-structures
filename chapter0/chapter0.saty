@@ -1,0 +1,35 @@
+@require: class-slydifi/theme/akasaka
+@require: figbox/figbox
+@require: enumitem/enumitem
+
+open FigBox
+
+in
+
+document '<
+  +make-title(|
+    title = {|簡潔データ構造 第0回|};
+    author = {|marimo|};
+    date = {|2023年4月18日|};
+  |);
+  +frame{アルゴリズムとは}<
+    +p{
+      何かしらの問題を解くための操作からなる有限の手続き
+    }
+    +p{
+      個別のプログラムとは異なる
+    }
+  >
+  +frame{データ構造とは}<
+    +p{
+      普通，アルゴリズムはデータを扱う
+    }
+    +p{
+      データの機械の上での持ち方，および索引を合わせてデータ構造とよぶ
+    }
+    +p{
+      データ構造とアルゴリズムは不可分
+    }
+  >
+>
+
