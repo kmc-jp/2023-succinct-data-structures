@@ -1,0 +1,131 @@
+@require: class-slydifi/theme/akasaka
+@require: enumitem/enumitem
+@require: figbox/figbox
+@require: math
+
+open FigBox
+
+let-math \bits = ${\mathop{\mathrm{bits}}}
+let-math \lg = math-char MathOp `lg`
+let-math \access = ${\mathrm{access}}
+let-math \rank = ${\mathrm{rank}}
+let-math \select = ${\mathrm{select}}
+
+
+in
+
+document'<
+  +make-title(|
+    title = {|簡潔データ構造 第1回|};
+    author = {|marimo|};
+    date = {|2023年4月25日|};
+  |);
+  +section{|簡潔ビットベクトル|Succinct Bit Vector|}<
+    +frame{定義}<
+      +p{
+        ${\set{0, 1}^n}の元を長さ${n}の\emph{ビットベクトル}と呼ぶ。${B \in \set{0, 1}^n}としたとき，
+      }
+      +listing{
+        * ${B\sqbracket{i}}は${B}の${i}番目のビットを表す\footnote{0-indexed. 以降n番目などと言うとき0-indexedとします}
+        * ${B\sqbracket{i..j}}は${B}の${i}番目から${j-1}番目までの連続する部分列を表す
+        * 上の記法において${i \geq j}のときは空とする
+      }
+    >
+    +frame{演算の定義}<
+      +p{
+        ${B \in \set{0, 1}^n}，${j \in \set{0, 1}}とする。このとき次の演算を定める
+      }
+      +listing{
+        * ${\app{\access}{B, i}}: ${B\sqbracket{i}}を返す
+        * ${\app{\rank_j}{B, i}}: ${B\sqbracket{0..i}}の${j}の数を返す
+        * ${\app{\select_j}{B, i}}: ${B}の先頭から${i}番目の${j}の位置を返す(共に0-indexed)
+      }
+    >
+    +frame{今日の主定理}<
+      +p{
+        定理(Raman, R., Raman, V., and Satti, S. R., 2007) \br;
+        長さ${n}のビットベクトルが与えられたとき，${\app{O}{n}}時間の前計算によって構築される${\app{O}{n \lg \lg n / \lg n}}ビットの索引を用いて
+        ${\rank, \select}は語長${\app{\Omega}{\lg n}}\footnote{${\app{\Omega}{\app{f}{n}}}は定義を与えていないが，これもランダウの記号のひとつであって漸近的に${\app{f}{n}}と同程度かこれより大きい関数の集合である\br;}
+        のWord-RAM上で\emph{定数時間}で計算できる
+      }
+    >
+    +frame{定理の概観}<
+      +p{
+        ${\app{o}{n}\bits}の索引をつかって定数時間で${\rank, \select}を処理できるのは結構非自明
+      }
+      +p{
+        ナイーブにやるなら，
+      }
+      +listing{
+        * ${\rank}に答えるためにprefix sum\footnote{いわゆる累積和}を持つ
+        * ${\select}も${i}番目の0,1の位置を全部持つ
+      }
+      +p{
+        みたいなものが考えられるが，これらは共に${n\lg n \bits}の空間を使うので簡潔ではない
+      }
+      +p{
+        実際のところ，${\rank}を計算するための索引は工夫したprefix sumを用いる。${\select}の計算にはナイーブな持ち方と${n}分探索をするための索引の2つを使う。
+      }
+    >
+    +frame{${\rank}の計算}<
+      +p{
+        ${l = \lg^2 n}\footnote{これは本当はよくないのですが，${\lg^2 n = \paren{\lg n}^2}と思ってください}とする。${B}を先頭から長さ${l}の\emph{大ブロック}に分割する。
+      }
+      +p{
+        つまり，${j}番目の大ブロックとは${B\sqbracket{lj..l\paren{j + 1}}}のこと
+      }
+      +p{
+        ここで整数の配列${R_L}を次のように定める
+        \eqn(${R_L\sqbracket{i} = \text!{最初から${i-1}番目の大ブロックまでの1の総数}});
+        ただし${R_L\sqbracket{0} = 0}とする。こうすると${x = \floor{i / l}}とすれば
+        \eqn(${\app{\rank_1}{B, i} = R_L\sqbracket{x} + \sum_{j = lx}^{i - 1} B\sqbracket{j}});
+      }
+      +p{
+        ${R_L}を持つためには${\app{O}{n / \lg^2 n \times \lg n} = \app{O}{n / \lg n}\bits}だけの空間を使えばよいので，この索引は簡潔。
+        これだけだとまだ${\rank}に${\app{O}{\lg^2 n}}時間かかる。
+      }
+    >
+    +frame{${\rank}の計算 その2}<
+      +p{
+        さらに大ブロックを長さ${s = \frac{1}{2} \lg n}の\emph{小ブロック}に分割する。
+      }
+      +p{
+        新たな整数の配列${R_S}を次のように定める
+        \align[
+          ${| R_S\sqbracket{i} = | \text!{${i}番目の小ブロックが属す大ブロックについて} |};
+          ${| | \text!{その先頭から直前の小ブロックまでの中の1の総数} |};
+        ];
+        ただし大ブロックの先頭の場合は0とする。こうすると${x = \floor{i/l}, y = \floor{i/s}}とすれば
+        \eqn(${
+          \app{\rank_1}{B, i} = R_L\sqbracket{x} + R_S\sqbracket{y} + \sum_{j = sy}^{i - 1} B\sqbracket{j}
+        });
+      }
+      +p{
+        ${R_S}を持つためには${\app{O}{n / \lg n \times \lg\lg n} = \app{o}{n}}だけかかるので，OK。
+        まだ${\app{O}{\lg n}}時間かかる。
+      }
+    >
+    +frame{${\rank}の計算 その3}<
+      +p{
+        細分化の方針だけでは定数時間にはできない。
+      }
+      +p{
+        ここで新しい方針\emph{表引き}をします。
+      }
+      +p{
+        今のところ問題になっている${B\sqbracket{sy..i}}の長さは${\frac{1}{2}\lg n}以下だから，Word-RAMでこのビット列を読んで整数${w}と思うのは定数時間でできる。
+      }
+      +p{
+        なんと${w}は${0}以上${\sqrt{n}}以下なので，次のような表${T}を${\app{O}{\sqrt{n} \lg n \lg \lg n} = \app{o}{n}}でもてる。
+      }
+      +align[
+      ${|T\sqbracket{w}\sqbracket{i} = | \text!{${w}を2進表現したビット列の，先頭から${i}番目までの1の数}|};
+      ${| | \text!{ただし，${i}番目も含む。}|};
+      ];
+      +p{
+        というわけでこれら3つの構造を持つことで${\rank}が定数時間で計算できる。
+      }
+    >
+  >
+>
+
