@@ -4,6 +4,7 @@
 @require: math
 
 open FigBox
+open EnumitemAlias
 
 let-math \bits = ${\mathop{\mathrm{bits}}}
 let-math \lg = math-char MathOp `lg`
@@ -133,29 +134,104 @@ document'<
     >
   >
   +section{|準備:k分木|k-ary tree|}<
-    +frame{木}<
+    +frame{木の形式的定義}<
+      +description<
+        +ditem{\emph{グラフ}}{\emph{頂点集合}${V}と\emph{辺集合}${E \subset V^2}の組${G = \paren{V, E}}のこと}<>
+        +ditem{\emph{ウォーク}(walk)}{
+          辺の列${e_0, \ldots, e_n}であって，${e_i = \paren{v_i, v_{i + 1}}}を満たすような頂点の列${v_0, \ldots, v_{n + 1}}が存在するもの。
+        }<>
+        +ditem{\emph{トレイル}(trail)}{
+          ウォークであって，辺が全て相異なるもの
+        }<>
+        +ditem{\emph{パス}(path)}{
+          トレイルであって，頂点が全て相異なるもの
+        }<>
+        +ditem{\emph{連結}(connected)}{
+          グラフ${G}が連結であるとは，任意の頂点${u, v}について${u}と${v}をつなぐパスが存在すること
+        }<>
+        +ditem{\emph{サイクル}(cycle)}{
+          トレイルであって，最初と最後の頂点が一致し，さらにそれ以外の頂点が全て相異なるもの
+        }<>
+        +ditem{\emph{木}(tree)}{
+          グラフであって，サイクルを持たず，連結であるもの
+        }<>
+      >
+    >
+    +frame{関連するものの定義}<
+      +description<
+        +ditem{\emph{根付き木}(rooted tree)}{
+          木であって，特に1つの頂点が\emph{根}(root)として指定されているもの
+        }<>
+        +ditem{\emph{親}(parent)}{
+          根付き木の頂点について，親とは根へのパス上の隣接する頂点のこと。
+        }<>
+        +ditem{\emph{子}(child)}{
+          根付き木の頂点${v}について，子とは親が${v}であるような頂点のこと。
+        }<>
+        +ditem{\emph{子孫}(descendant)}{
+          根付き木の頂点について，子孫とは子と子の子孫のことである。
+        }<>
+        +ditem{\emph{葉}(leaf)}{
+          子を持たない頂点のことを葉と呼ぶ。
+        }<>
+      >
+    >
+    +frame{おきもち}<
       +p{
-        形式的には，ループのない連結な無向グラフなどと定義される。
-        よくわからない人は，紙の上に丸(頂点)をいくつか書いて，その間にループができないように線(辺)をつないで全部がつながるようにしてください。
-        そういうやつです。
+        よくわからない人は，紙の上に丸(頂点)をいくつか書いて，
+        その間にループができないように線(辺)をつないで全部がつながるようにしてください。これが木です。
       }
       +p{
-        頂点の中から1つ選ぶことにして，これに\emph{根}(root)と名前を付けます。こうすると繋がりの関係を保ったまま，垂れ下がるようにできるはずです。\footnote{トーナメント表みたいな感じに}
+        頂点の中から1つ選ぶことにして，これに\emph{根}(root)と名前を付けます。
+        こうすると繋がりの関係を保ったまま，垂れ下がるようにできます。
         このとき，頂点に対して直接下にくるものを\emph{子}，下にある頂点全部を\emph{子孫}，子がないものを\emph{葉}と呼びます。
       }
+      +fig-center(
+        hconcat [
+          vconcat ?:align-center [
+            include-image-with-height 150pt `fig/Tree.jpg` |> hvmargin 2pt |> frame 1pt Color.black;
+            gap 1pt;
+            textbox ?:(set-font-size 12pt){頂点数7の木};
+          ];
+          gap 10pt;
+          vconcat ?:align-center [
+            include-image-with-height 150pt `fig/Rooted_tree.jpg` |> hvmargin 2pt |> frame 1pt Color.black;
+            gap 1pt;
+            textbox ?:(set-font-size 12pt){頂点数7の根付き木};
+          ];
+        ]
+      );
     >
     +frame{k分木}<
+      +description<
+        +ditem{\emph{k分木}(k-ary tree)}{
+          全ての頂点について子の個数が高々${k}である木
+        }<>
+        +ditem{\emph{完全k分木}(perfect k-ary tree)}{
+          葉を除く全ての頂点について子の個数がちょうど${k}である木
+        }<>
+      >
       +p{
-        全ての頂点について子の個数が高々${k}である木を\emph{k分木}(k-ary tree)と呼びます。
+        完全k分木の各ノードに情報を載せていてこれを持ちたいとき，実は配列が1つあれば十分。
       }
-      +p{
-        葉を除く全ての頂点について子の個数がちょうど${k}である木を\emph{完全k分木}(perfect k-ary tree)と呼びます。
-      }
-      +p{
-        完全k分木の各ノードに情報を載せていて，これを持ちたいとき，実は配列が1つあれば十分です。
-      }
+      +fig-center(
+        hconcat [
+          vconcat ?:align-center [
+            include-image-with-height 150pt `fig/Rooted_tree.jpg` |> hvmargin 2pt |> frame 1pt Color.black;
+            gap 1pt;
+            textbox ?:(set-font-size 12pt){2分木};
+          ];
+          gap 10pt;
+          vconcat ?:align-center [
+            include-image-with-height 150pt `fig/Perfect_ternary_tree.jpg` |> hvmargin 2pt |> frame 1pt Color.black;
+            gap 1pt;
+            textbox ?:(set-font-size 12pt){完全3分木};
+          ];
+
+        ]
+      );
     >
-    +frame{完全k分木}<
+    +frame{完全k分木の持ち方}<
       +p{
         配列${A}を次のように定める
       }
@@ -164,7 +240,7 @@ document'<
         * ${A\sqbracket{i}}の子孫の情報は${A\sqbracket{i*k + 1}}から${A\sqbracket{i*k + k}}までに載せる
       }
       +p{
-        これで実はうまくいっていて，${k}進数との対応を考えるとよいかもしれない
+        これで実はうまくいっている。幅探索順序というやつ。${k}進数との対応を考えるとよいかもしれない。
       }
     >
   >
@@ -223,7 +299,7 @@ document'<
           ** 密の場合，次の手続きでもって求める
             *** 今いるノードの子孫の情報は連続する${\app{O}{\sqrt{\lg n}\lg\lg n} = \app{o}{\lg n} \bits}にあるので整数として読む
             *** 降りるべき子孫は表引きで分かる。表のサイズは\br;${\app{O}{2^{\sqrt{\lg n}\lg \lg n } \times \lg \lg n} = \app{o}{n} \bits}で簡潔。
-            *** あとは葉まで降りる。
+            *** あとは葉まで降りる。最後も表を引けばわかる。
       }
     >
   >
@@ -239,7 +315,10 @@ document'<
         これは${m}が小さい，もしくは${n}に近いときは${n}よりも小さくなる。
       }
       +p{
-        じゃあこのためのデータ構造が必要ですね。これがFully Indexable Dictionary
+        じゃあこのためのデータ構造が必要ですね。それがFully Indexable Dictionaryです。
+      }
+      +p{
+        知りたい人がそれなりにいればやります
       }
     >
   >
