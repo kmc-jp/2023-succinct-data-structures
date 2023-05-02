@@ -1,0 +1,113 @@
+@require: class-slydifi/theme/akasaka
+@require: enumitem/enumitem
+@require: easytable/easytable
+@require: figbox/figbox
+@require: math
+
+open FigBox
+open EnumitemAlias
+open EasyTableAlias
+
+let-math \bits = ${\mathop{\mathrm{bits}}}
+let-math \lg = math-char MathOp `lg`
+let-math \access = ${\mathrm{access}}
+let-math \rank = ${\mathrm{rank}}
+let-math \select = ${\mathrm{select}}
+
+
+in
+
+document'<
+  +make-title(|
+    title = {|簡潔データ構造 第2回|};
+    author = {|marimo|};
+    date = {|2023年4月25日|};
+  |);
+  +frame{方針}<
+    +p{
+      実は現実のマシンとWord-RAMは全然違う 
+    }
+    +listing{
+      * メモリはword単位でしか読めない
+        ** もっと言うと読むのはライン単位
+      * 表引きは遅い
+        ** RAMアクセスは10nsぐらいかかるが1クロックは0.5nsぐらい
+      * もっと多くのことが1命令でできる
+        ** word内のrank,selectはできる
+    }
+  >
+  +frame{メモリの読み方}<
+    +p{
+      Word-RAMはメモリを任意のbitから${w\bits}だけ読み出すことができた。
+    }
+    +p{
+      実際のプロセッサはメモリはワードサイズ単位とかバイト単位とかでしか読めないので，
+      小ブロックがワードをまたがると実行速度上の問題がある。
+    }
+    +p{
+      一方でバイト単位にすると索引サイズが大きくなるので困る。
+    }
+    +p{
+      紹介した${\rank}の索引では${n = 2^{32}}だと大ブロックは${l = 2^{10}}の長さになり，小ブロックの配列に入る整数は${10\bits}で困る。
+      そこで大ブロックの長さを${2^{16}}ぐらいに固定してやると小ブロックで持つ整数が16bitでちょうど持ててよい。
+    }
+  >
+  +frame{表引きは遅い}<
+    +p{
+      使う表は${\app{\Omega}{\sqrt{n}\log \log n}}ぐらいでかなり大きくなりがちなのでキャッシュに乗らない
+    }
+    +p{
+      RAMにアクセスすることになるがこれは10nsぐらいかかる
+    }
+    +p{
+      一方でbit演算とかは平均すれば1命令0.5クロックぐらいでできる(およそ0.3ns)なので，bit演算で頑張った方が速くなることが多い
+    }
+    +p{
+      表を使わない場合，小ブロックを${\frac{1}{2}\lg n \bits}にする必要がなくなるので小ブロックをもう少し大きくても大丈夫になる。
+      具体的にはワードサイズぐらいか，キャッシュのラインサイズを考慮して256ビットぐらい？
+    }
+  >
+  +frame{CPUの拡張命令}<
+    +p{
+      現代のCPUは実はword-sizeの四則とbit演算と少しの制御よりももっと沢山のことができる
+    }
+    +p{
+      最近のx64プロセッサについている拡張命令として，POPCNTとPDEPとTZCNTというのがある
+    }
+    +easytable[c; c]{
+      | POPCNT x | x(1ワード)の中の1の数を数える
+      | PDEP x y | xの下位POPCNT yビットをyの立っているビットのところに分配する
+      | TZCNT x  | xの下位の連続する0の個数を数える
+    |}
+    +p{
+      これを使えば表を使わない方針を高速化できる。
+    }
+    +align[
+      ${| \app{\rank}{x, i} | = \app{\mathrm{POPCNT}}{x \mathbin{<<} w - i} |};
+      ${| \app{\select}{x, i} | = \app{\mathrm{TZCNT}}{\app{\mathrm{PDEP}}{1 \mathbin{<<} i, x}} |};
+    ];
+  >
+  +frame{CPUの拡張命令}<
+    +p{
+      最適化で使ってくれるときもあるが，明示的に使いたい場合は次の関数を使う
+    }
+    +easytable[c;c;c]{
+      |       | POPCNT                              | PDEP
+      | gcc   | `__builtin_popcount`                | `_pdep_u64`
+      | clang | `<x86intrin.h>`内の`_mm_popcnt_u64` | `<x86intrin.h>`内の`_pdep_u64`
+      | rustc | `std::arch::x86_64`内の`_popcnt64`  | `std::arch::x86_64`内の`_pdep_u64`
+    |}
+    +p{
+      ただし，gcc,clangはコンパイラオプションで`-msse4.2`,`-mbmi2`を必要とする。またrustcはRUSTFLAGに`-C target-feature=+bmi2,+sse4.2`を付ける必要がある。
+    }
+  >
+  +frame{${\select}について}<
+    +p{
+      こちらには${\rank}ほどのめぼしい高速化，簡単化はない
+    }
+    +p{
+      先程述べた，葉で${\select}をするときの高速化ぐらい
+    }
+  >
+>
+

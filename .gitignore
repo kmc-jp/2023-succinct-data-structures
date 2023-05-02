@@ -1,1 +1,7 @@
 *.satysfi-aux
+
+
+# Added by cargo
+
+/target
+/Cargo.lock
