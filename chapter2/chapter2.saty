@@ -35,21 +35,26 @@ document'<
       * もっと多くのことが1命令でできる
         ** word内のrank,selectはできる
     }
+    +p{
+      あと説明した${\select}の索引は実際に使う程度のサイズでは大きすぎるので工夫しましょう
+    }
+    +p{
+      64bitのマシンを使う限り最大ケースは${2^{64}\bits}のときなので，このときに大丈夫なら大丈夫です
+    }
   >
   +frame{メモリの読み方}<
-    +p{
-      Word-RAMはメモリを任意のbitから${w\bits}だけ読み出すことができた。
-    }
-    +p{
-      実際のプロセッサはメモリはワードサイズ単位とかバイト単位とかでしか読めないので，
-      小ブロックがワードをまたがると実行速度上の問題がある。
-    }
-    +p{
-      一方でバイト単位にすると索引サイズが大きくなるので困る。
+    +listing{
+      * Word-RAMはメモリを任意のbitから${w\bits}だけ読み出すことができた。
+      * 実際のプロセッサはメモリはワードサイズ単位とかバイト単位とかでしか読めないので，
+        小ブロックがワードをまたがると実行速度上の問題がある。
+        ** 一方でバイト単位にすると索引サイズが大きくなるので困る。
     }
     +p{
       紹介した${\rank}の索引では${n = 2^{32}}だと大ブロックは${l = 2^{10}}の長さになり，小ブロックの配列に入る整数は${10\bits}で困る。
       そこで大ブロックの長さを${2^{16}}ぐらいに固定してやると小ブロックで持つ整数が16bitでちょうど持ててよい。
+    }
+    +p{
+      索引のブロックサイズを大きくする分には索引が小さくなるだけなので困らない
     }
   >
   +frame{表引きは遅い}<
@@ -74,7 +79,7 @@ document'<
     +p{
       最近のx64プロセッサについている拡張命令として，POPCNTとPDEPとTZCNTというのがある
     }
-    +easytable[c; c]{
+    +easytable?:[t; b] [c; c]{
       | POPCNT x | x(1ワード)の中の1の数を数える
       | PDEP x y | xの下位POPCNT yビットをyの立っているビットのところに分配する
       | TZCNT x  | xの下位の連続する0の個数を数える
@@ -91,14 +96,17 @@ document'<
     +p{
       最適化で使ってくれるときもあるが，明示的に使いたい場合は次の関数を使う
     }
-    +easytable[c;c;c]{
-      |       | POPCNT                              | PDEP
-      | gcc   | `__builtin_popcount`                | `_pdep_u64`
-      | clang | `<x86intrin.h>`内の`_mm_popcnt_u64` | `<x86intrin.h>`内の`_pdep_u64`
-      | rustc | `std::arch::x86_64`内の`_popcnt64`  | `std::arch::x86_64`内の`_pdep_u64`
+    +easytable[c;c;c;c]{
+      |       | POPCNT               | PDEP        | TZCNT
+      | gcc   | `__builtin_popcount` | `_pdep_u64` | `_tzcnt_u64`
+      | clang | `_mm_popcnt_u64`     | `_pdep_u64` | `_tzcnt_u64`
+      | rustc | `_popcnt64`          | `_pdep_u64` | `_tzcnt_u64`
     |}
     +p{
-      ただし，gcc,clangはコンパイラオプションで`-msse4.2`,`-mbmi2`を必要とする。またrustcはRUSTFLAGに`-C target-feature=+bmi2,+sse4.2`を付ける必要がある。
+      ただし，gcc,clangはコンパイラオプションで`-msse4.2`,`-mbmi2`を必要とし，さらに`<x86intrin.h>`をincludeする必要がある。
+    }
+    +p{
+      また，rustcの関数群は全て`std::arch::x86_64`内に定義されている。オプションに`-C target-feature=+bmi1,+bmi2,+sse4.2`を付ける必要がある。
     }
   >
   +frame{${\select}について}<
@@ -107,6 +115,43 @@ document'<
     }
     +p{
       先程述べた，葉で${\select}をするときの高速化ぐらい
+    }
+    +p{
+      実装するのがとても大変なので，とりあえず${\rank}を使って二分探索するようにしてよいです
+    }
+    +p{
+      少し賢くする方法として，密なブロックでのみ二分探索するようにすれば${\app{O}{\lg \lg n}}時間でできます。これでも実用上十分高速です。
+    }
+  >
+  +frame{まとめ}<
+    +enumerate{
+      * とりあえず${\access}を作りましょう。
+      * 次に${\rank}を作りましょう。
+      * ${\select}は${\rank}による二分探索${\app{O}{\lg n}}を作る
+        ** 余裕がある人は大ブロックに分割してSparseなら全部持ってDenseなら二分探索のやつ${\app{O}{\lg \lg n}}を実装する
+        ** めちゃくちゃ余裕がある人は定数時間${\select}を作りましょう。\footnote{これは嘘かもしれません。普通に遅くて実用性がありません。}
+    }
+    +p{
+      これ以降紹介するデータ構造は全て簡潔ビットベクトルを使うのでとりあえず動くものを作りましょう。
+    }
+  >
+  +frame{おまけ}<
+    +p{
+      良い感じっぽそうな実装としてcs-poppy\footnote{Zhou et al, Space-Efficient, High-Performance Rank and Select Structures on Uncompressed Bit Sequences, 2013}
+      というやつがありました。
+    }
+    +p{
+      かなり簡単な構造なので論文を見てもらえばすぐ分かると思いますが，基本的なアイデアは
+    }
+    +listing{
+      * キャッシュミスを減らすのが本質
+      * 紹介した${\rank}の構造の大ブロックの各ワードの中に一緒に内部の小ブロックの情報を持つbit列を並べちゃう
+        ** キャッシュミスが一回分減る
+      * 紹介した${\select}(Clerk)はでかいし遅いので，二分探索とかでごまかす
+    }
+    +p{
+      なんかSIMDとか使ってもっと良い感じにしてるやつもありました。\footnote{Kurpicz, Engineering Compact Data Structures for Rank
+and Select Queries on Bit Vectors}
     }
   >
 >
