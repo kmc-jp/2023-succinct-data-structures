@@ -52,7 +52,4 @@ impl BV {
         self.shiftr(inword);
         Self{data: v1, length: idx}
     }
-    pub fn into_boxed_slice(self) -> Box<[usize]> {
-        self.data.into_boxed_slice()
-    }
 }

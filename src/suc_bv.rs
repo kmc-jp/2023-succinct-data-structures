@@ -19,7 +19,7 @@ impl SucBV {
         let large_idx = i / RANK_LARGE_BLOCKSIZE;
         let small_idx = i / RANK_SMALL_BLOCKSIZE;
         let word_idx = i / WORDSIZE;
-        let mut sum = self.rank.large(large_idx) as usize+ self.rank.small(small_idx) as usize;
+        let mut sum = self.rank.large(large_idx) as usize + self.rank.small(small_idx) as usize;
         for j in small_idx * RANK_SMALL_BLOCKSIZE..word_idx {
             sum += self.raw_data.word(j).count_ones() as usize;
         }
@@ -52,18 +52,17 @@ pub struct SucBVBuilder {
 }
 
 impl SucBVBuilder {
-    fn new(length: usize) -> SucBVBuilder {
+    pub fn new(length: usize) -> SucBVBuilder {
         Self {
             data: BV::new(length),
         }
     }
-    fn set(&mut self, idx: usize, bit: bool) {
+    pub fn set(&mut self, idx: usize, bit: bool) {
         self.data.set(idx, bit);
     }
-    fn build(self) -> SucBV {
+    pub fn build(self) -> SucBV {
+        let rank = RankIndex::new(&self.data);
         let select1 = SelectIndex::new(self.data.clone());
-        let raw_data = self.data.clone().into_boxed_slice();
-        let rank = RankIndex::new(&raw_data);
         SucBV {
             raw_data: self.data, rank, select1, //select0: select0
         }

@@ -1,10 +1,10 @@
 use crate::bit::WORDSIZE;
 use crate::raw_bit_vector::BV;
-pub const SELECT_LARGE_BLOCKSIZE: usize = 1 << 10;
-const SELECT_DENSE_THRESHOLD: usize = SELECT_LARGE_BLOCKSIZE * SELECT_LARGE_BLOCKSIZE;
+pub const SELECT_LARGE_BLOCKSIZE: usize = 1 << 12;
+const SELECT_DENSE_THRESHOLD: usize = 1 << 24;
 pub const SELECT_SMALL_BLOCKSIZE: usize = WORDSIZE;
 
-const SELECT_BRANCH: usize = 6;
+const SELECT_BRANCH: usize = 4;
 
 pub struct SelectIndex {
     data: Box<[(SelectBox, usize)]>,
@@ -27,6 +27,7 @@ impl SelectIndex {
                 start = i;
                 sum = 1;
             }
+            // TODO: 最後のブロックの処理をしていません
         }
         Self {
             data: ret.into_boxed_slice(),

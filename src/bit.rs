@@ -11,20 +11,23 @@ pub fn word_access(x: usize, i: usize) -> usize {
 #[cfg(target_feature = "sse4.2")]
 pub fn word_rank1(x: usize, i: usize) -> usize {
     use std::arch::x86_64::_popcnt64;
-    unsafe {_popcnt64(x as i64 & ((1 << i) - 1)) as usize}
+    let (mask, _) = ((1 as usize) << i).overflowing_sub(1);
+    let a = x & mask;
+    unsafe {_popcnt64(a as i64) as usize}
 }
 
 #[inline]
-#[cfg(target_feature = "bmi2")]
+#[cfg(all(target_feature = "bmi2", target_feature = "bmi1"))]
 pub fn word_select1(x: usize, i: usize) -> usize {
-    use std::arch::x86_64::_pdep_u64;
-    unsafe { _pdep_u64(1 << i, x as u64).trailing_zeros() as usize }
+    use std::arch::x86_64::{_pdep_u64, _tzcnt_u64};
+    unsafe { _tzcnt_u64(_pdep_u64(1 << i, x as u64)) as usize }
 }
 
-#[cfg(target_feature = "bmi2")]
+#[inline]
+#[cfg(all(target_feature = "bmi2", target_feature = "bmi1"))]
 pub fn word_select0(x: usize, i: usize) -> usize {
-    use std::arch::x86_64::_pdep_u64;
-    unsafe { _pdep_u64(1 << i, !x as u64).trailing_zeros() as usize }
+    use std::arch::x86_64::{_pdep_u64, _tzcnt_u64};
+    unsafe { _tzcnt_u64(_pdep_u64(1 << i, !x as u64)) as usize }
 }
 
 #[inline]
@@ -55,7 +58,7 @@ mod test {
             let mut rng = rand::thread_rng();
             let r: usize = rng.gen();
             for j in 0..64 {
-                assert_eq!(word_rank1(r, j), (r & ((1 << j) - 1)).count_ones() as u64);
+                assert_eq!(word_rank1(r, j), (r & ((1 << j) - 1)).count_ones() as usize);
             }
         }
     }
@@ -70,5 +73,11 @@ mod test {
         assert_eq!(word_select1(a, 5), 8);
         assert_eq!(word_select1(a, 6), 9);
         assert_eq!(word_select1(a, 7), 11);
+    }
+    #[test]
+    fn test_shrd() {
+        let a: usize = 0x0f0f_8f8f_013f_1034;
+        let b: usize = 0x013f_1034_1340_180a;
+        assert_eq!(shrd(a, b, 4), 0x4013f10341340180);
     }
 }
