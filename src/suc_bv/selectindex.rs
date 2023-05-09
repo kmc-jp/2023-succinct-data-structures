@@ -1,5 +1,5 @@
 use crate::bit::WORDSIZE;
-use crate::raw_bit_vector::BV;
+use super::raw_bit_vector::BV;
 pub const SELECT_LARGE_BLOCKSIZE: usize = 1 << 12;
 const SELECT_DENSE_THRESHOLD: usize = 1 << 24;
 pub const SELECT_SMALL_BLOCKSIZE: usize = WORDSIZE;

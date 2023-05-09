@@ -3,6 +3,7 @@ use super::raw_bit_vector::BV;
 pub const RANK_LARGE_BLOCKSIZE: usize = 1 << 16;
 pub const RANK_SMALL_BLOCKSIZE: usize = 256;
 
+#[derive(Debug)]
 pub struct RankIndex {
     large: Box<[u64]>, // 2^16 bitごと
     small: Box<[u16]>,
@@ -29,7 +30,9 @@ impl RankIndex {
             sum += bv.word(i).count_ones() as u64;
             blocksum += bv.word(i).count_ones() as u16;
         }
-        // TODO:最後のブロックの処理をしていません
+        // DONE:最後のブロックの処理をしていません
+        large.push(sum);
+        small.push(0);
         let large = large.into_boxed_slice();
         let small = small.into_boxed_slice();
         Self {large, small}
