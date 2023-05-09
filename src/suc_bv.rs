@@ -4,6 +4,19 @@ use crate::selectindex::SelectBox::*;
 use crate::bit::*;
 use crate::raw_bit_vector::BV;
 
+mod rankindex;
+mod selectindex;
+mod raw_bit_vector;
+
+pub trait BitVector {
+    fn access(&self, i: usize) -> usize
+    fn rank1(&self, i: usize) -> usize
+    fn rank0(&self, i: usize) -> usize {
+        i - self.rank1()
+    }
+    fn select1(&self, i: usize) -> usize
+}
+
 pub struct SucBV {
     raw_data: BV,
     rank: RankIndex,
@@ -11,7 +24,7 @@ pub struct SucBV {
     // select0: SelectIndex,
 }
 
-impl SucBV {
+impl BitVector for SucBV {
     pub fn access(&self, i: usize) -> usize {
         self.raw_data.access(i)
     }
@@ -41,9 +54,6 @@ impl SucBV {
                 word_select1(word, rest)
             },
         }
-    }
-    pub fn select0(&self, _i: usize) -> usize {
-        todo!()
     }
 }
 

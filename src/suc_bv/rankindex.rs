@@ -1,5 +1,5 @@
 use crate::bit::WORDSIZE;
-use crate::raw_bit_vector::BV;
+use super::raw_bit_vector::BV;
 pub const RANK_LARGE_BLOCKSIZE: usize = 1 << 16;
 pub const RANK_SMALL_BLOCKSIZE: usize = 256;
 
