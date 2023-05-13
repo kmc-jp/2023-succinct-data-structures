@@ -6,10 +6,10 @@ pub const SELECT_SMALL_BLOCKSIZE: usize = WORDSIZE;
 
 const SELECT_BRANCH: usize = 4;
 
-pub struct SelectIndex {
+pub struct SuccinctSelectIndex {
     data: Box<[(SelectBox, usize)]>,
 }
-impl SelectIndex {
+impl SuccinctSelectIndex {
     pub fn new(mut bv: BV) -> Self {
         let mut ret = Vec::new();
         let n = bv.len();
