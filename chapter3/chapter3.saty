@@ -2,6 +2,7 @@
 @require: enumitem/enumitem
 @require: easytable/easytable
 @require: figbox/figbox
+@require: colorbox/colorbox
 @require: math
 
 open FigBox
@@ -20,36 +21,34 @@ let-math \ifthen cond t f = ${\mathbin{\mathrm{if}} #cond \mathbin{\mathrm{then}
 
 let-inline \qed = {▪}
 
-let theorem-scheme category wordopt inner =
+let-block ctx +definition ?:wordopt inner = 
   let ib-word =
     match wordopt with
     | None       -> {}
     | Some(word) -> {\ (#word;).}
   in
-  {\textbf{#category;} #ib-word; #inner;}
+  read-block ctx '<
+    +Colorbox.colorbox [] ?:({定義 #ib-word;}) (inner);
+  >
 
-let-block ctx +definition ?:wordopt inner = read-block ctx '<
-  +fig-center(
-    textbox-with-width 600pt (
-      theorem-scheme {定義} wordopt inner
-    ) |> hvmargin 6pt |> frame 1pt Color.black
-  );
->
-
-let-block ctx +theorem ?:wordopt inner = read-block ctx '<
-  +fig-center(
-    textbox-with-width 600pt (
-      theorem-scheme {定理} wordopt inner
-    ) |> hvmargin 6pt |> frame 1pt Color.black
-  );
->
-let-block ctx +lemma ?:wordopt inner = read-block ctx '<
-  +fig-center(
-    textbox-with-width 600pt (
-      theorem-scheme {補題} wordopt inner
-    ) |> hvmargin 6pt |> frame 1pt Color.black
-  );
->
+let-block ctx +theorem ?:wordopt inner = 
+  let ib-word =
+    match wordopt with
+    | None       -> {}
+    | Some(word) -> {\ (#word;).}
+  in
+  read-block ctx '<
+    +Colorbox.colorbox [] ?:({定理 #ib-word;}) (inner);
+  >
+let-block ctx +lemma ?:wordopt inner = 
+  let ib-word =
+    match wordopt with
+    | None       -> {}
+    | Some(word) -> {\ (#word;).}
+  in
+  read-block ctx '<
+    +Colorbox.colorbox [] ?:({補題 #ib-word;}) (inner);
+  >
 
 
 in
@@ -61,9 +60,11 @@ document'<
     date = {|2023年4月25日|};
   |);
   +frame{準備:順序木}<
-    +definition{
-      \emph{順序木}とは根付き木であって各頂点の子に順序がついているもの
-    }
+    +definition<
+      +p{
+        \emph{順序木}とは根付き木であって各頂点の子に順序がついているもの
+      }
+    >
     +p{
       n頂点の順序木の総数はカタラン数${C_{n - 1}}になるので，表現の情報理論的下限は
     }
@@ -79,10 +80,12 @@ document'<
     ]);
   >
   +frame{LOUDS表現}<
-    +definition?:({LOUDS表現 level-order unary degree sequence representation}){
-      順序木の\emph{LOUDS表現}とは次数が${d}のノードを${d}個の${1}と続く1個の${0}で表し，幅探索順で並べたビット列${L}のこと。
-      ただし仮想的な根の親を付けて${10}で表す。\footnote{これは簡単のために付けているので${2\bits}ケチりたいなら消せる}
-    }
+    +definition?:({LOUDS表現 level-order unary degree sequence representation})<
+      +p{
+        順序木の\emph{LOUDS表現}とは次数が${d}のノードを${d}個の${1}と続く1個の${0}で表し，幅探索順で並べたビット列${L}のこと。
+        ただし仮想的な根の親を付けて${10}で表す。\footnote{これは簡単のために付けているので${2\bits}ケチりたいなら消せる}
+      }
+    >
     +p{
       深さ${d}のノードたちに対応するビット列を深さ${d + 1}のビット列と呼ぶことにする。
     }
@@ -91,10 +94,12 @@ document'<
     );
   >
   +frame{LOUDS表現}<
-    +lemma{
-      任意のLOUDS表現${L}について，
-      ${d \geq 0}に対して，深さ${d}のビット列の中の1の数と深さ${d + 1}のビット列の中の0の数，および深さ${d}のノード数は全て等しい。
-    }
+    +lemma<
+      +p{
+        任意のLOUDS表現${L}について，
+        ${d \geq 0}に対して，深さ${d}のビット列の中の1の数と深さ${d + 1}のビット列の中の0の数，および深さ${d}のノード数は全て等しい。
+      }
+    >
     +p{
       深さ${d \geq -1}\footnote{便宜的に仮想的な根の親の深さを${-1}とする}のノードの次数は${L}の深さ${d + 1}に1進数符号で書いてある。この次数の和は深さ${d + 1}のノードの総数を表していたから，${1}の総数はこれに等しい。
     }
@@ -127,15 +132,17 @@ document'<
     }
   >
   +frame{LOUDSによる演算}<
-    +lemma{
-      任意のLOUDS表現${L}について次が成立する。${i}をあるノードの幅優先順，${x}をそのノードの最初の子の位置とする。
-      \align([
-        ${| i = | \func{parent\_rank}{x} = \app{\rank_0}{L, x - 1} |};
-        ${| x = | \func{first\_child\_select}{i} = \app{\select_0}{L, i} + 1 |};
-      ]);
-    }
+    +lemma<
+      +p{
+        任意のLOUDS表現${L}について次が成立する。${i}をあるノードの幅優先順，${x}をそのノードの最初の子の位置とする。
+        \align([
+          ${| i = | \func{parent\_rank}{x} = \app{\rank_0}{L, x - 1} |};
+          ${| x = | \func{first\_child\_select}{i} = \app{\select_0}{L, i} + 1 |};
+        ]);
+      }
+    >
     +fig-on-left(
-      include-image-with-height 200pt `fig/louds_bfs.pdf` |> frame 1pt Color.black
+      include-image-with-height 180pt `fig/louds_bfs.pdf` |> frame 1pt Color.black
    )<
       +p{
         ノードの幅優先順${j}についての帰納法によって示す。幅優先順が${0}の根については
@@ -162,7 +169,7 @@ document'<
     }
   >
   +frame{LOUDSによる演算}<
-    +fig-on-left(include-image-with-height 300pt `fig/ordered_tree_with_op.pdf` |> frame 1pt Color.black )<
+    +fig-on-left(include-image-with-height 320pt `fig/ordered_tree_with_op.pdf` |> frame 1pt Color.black )<
       +p{
         さっきの演算たち
       }
