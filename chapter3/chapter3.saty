@@ -1,0 +1,187 @@
+@require: class-slydifi/theme/akasaka
+@require: enumitem/enumitem
+@require: easytable/easytable
+@require: figbox/figbox
+@require: math
+
+open FigBox
+open EnumitemAlias
+open EasyTableAlias
+
+let-math \bits = ${\mathop{\mathrm{bits}}}
+let-math \lg = ${\mathop{\mathrm{lg}}}
+let-math \access = ${\mathrm{access}}
+let-math \rank = ${\mathrm{rank}}
+let-math \select = ${\mathrm{select}}
+let-math \dummy = ${}
+let-math \binom n k = ${\dummy_{#n} \mathrm{C}_{#k} }
+let-math \func m n = ${\app{\mathrm{#m}}{#n}}
+let-math \ifthen cond t f = ${\mathbin{\mathrm{if}} #cond \mathbin{\mathrm{then}} #t \mathbin{\mathrm{else}} #f}
+
+let-inline \qed = {▪}
+
+let theorem-scheme category wordopt inner =
+  let ib-word =
+    match wordopt with
+    | None       -> {}
+    | Some(word) -> {\ (#word;).}
+  in
+  {\textbf{#category;} #ib-word; #inner;}
+
+let-block ctx +definition ?:wordopt inner = read-block ctx '<
+  +fig-center(
+    textbox-with-width 600pt (
+      theorem-scheme {定義} wordopt inner
+    ) |> hvmargin 6pt |> frame 1pt Color.black
+  );
+>
+
+let-block ctx +theorem ?:wordopt inner = read-block ctx '<
+  +fig-center(
+    textbox-with-width 600pt (
+      theorem-scheme {定理} wordopt inner
+    ) |> hvmargin 6pt |> frame 1pt Color.black
+  );
+>
+let-block ctx +lemma ?:wordopt inner = read-block ctx '<
+  +fig-center(
+    textbox-with-width 600pt (
+      theorem-scheme {補題} wordopt inner
+    ) |> hvmargin 6pt |> frame 1pt Color.black
+  );
+>
+
+
+in
+
+document'<
+  +make-title(|
+    title = {|簡潔データ構造 第3回|順序木のLOUDS表現|};
+    author = {|marimo|};
+    date = {|2023年4月25日|};
+  |);
+  +frame{準備:順序木}<
+    +definition{
+      \emph{順序木}とは根付き木であって各頂点の子に順序がついているもの
+    }
+    +p{
+      n頂点の順序木の総数はカタラン数${C_{n - 1}}になるので，表現の情報理論的下限は
+    }
+    +math(${
+      \ceil{\lg \frac{1}{n} \binom{2\paren{n - 1}}{n - 1}} = 2n - \app{O}{\lg n} \bits
+    });
+    +fig-center(hconcat ?:(align-center)[
+        include-image-with-height 190pt `fig/ordered_tree.pdf` |> frame 1pt Color.black;
+        gap 10pt;
+        include-image-with-height 190pt `fig/ordered_tree_iso.pdf` |> frame 1pt Color.black;
+        gap 10pt;
+        textbox-with-width ?:(set-font-size 14pt) 250pt {順序木の例2つ。これらは単なる根付き木としては同型だが順序木としては同型でない。};
+    ]);
+  >
+  +frame{LOUDS表現}<
+    +definition?:({LOUDS表現 level-order unary degree sequence representation}){
+      順序木の\emph{LOUDS表現}とは次数が${d}のノードを${d}個の${1}と続く1個の${0}で表し，幅探索順で並べたビット列${L}のこと。
+      ただし仮想的な根の親を付けて${10}で表す。\footnote{これは簡単のために付けているので${2\bits}ケチりたいなら消せる}
+    }
+    +p{
+      深さ${d}のノードたちに対応するビット列を深さ${d + 1}のビット列と呼ぶことにする。
+    }
+    +fig-center(
+      include-image-with-height 200pt `fig/ordered_tree_with_louds.pdf` |> frame 1pt Color.black
+    );
+  >
+  +frame{LOUDS表現}<
+    +lemma{
+      任意のLOUDS表現${L}について，
+      ${d \geq 0}に対して，深さ${d}のビット列の中の1の数と深さ${d + 1}のビット列の中の0の数，および深さ${d}のノード数は全て等しい。
+    }
+    +p{
+      深さ${d \geq -1}\footnote{便宜的に仮想的な根の親の深さを${-1}とする}のノードの次数は${L}の深さ${d + 1}に1進数符号で書いてある。この次数の和は深さ${d + 1}のノードの総数を表していたから，${1}の総数はこれに等しい。
+    }
+    +p{
+      深さ${d}のノードに対して${L}の深さ${d + 1}の列に1つの符号が存在する。1つの符号には1つの${0}が存在する。つまり深さ${d + 1}の列の${0}の数と深さ${d}のノードの数は等しい。\qed;
+    }
+  >
+  +frame{LOUDS表現}<
+    +p{
+      補題から幅優先順で${i}番目のノードと${i}番目の${1}が対応付けられるので，対応する${1}の位置をノードの\emph{位置}として定める。
+    }
+    +p{
+      ${\func{bfs\_rank}{x}}で位置${x}のノードの幅優先順，${\func{bfs\_select}{i}}で幅優先順で${i}番目のノードの位置を表すことにすると
+    }
+    +align([
+      ${| i = \func{bfs\_rank}{x} | = \app{\rank_1}{L, x} |};
+      ${| x = \func{bfs\_select}{i} | = \app{\select_1}{L, i} |};
+    ]);
+  >
+  +frame{LOUDSによる演算}<
+    +p{
+      次の2つの演算を新たに定義する。
+    }
+    +align([
+      ${| \func{parent\_rank}{x} | =  \text!{位置${x}のノードの親の幅優先順} |};
+      ${| \func{first\_child\_select}{i} | =  \text!{幅優先順で${i}番目のノードの最初の子の位置} |};
+    ]);
+    +p{
+      ただし，葉については対応する符号${0}を最初の子の位置として定める。
+    }
+  >
+  +frame{LOUDSによる演算}<
+    +lemma{
+      任意のLOUDS表現${L}について次が成立する。${i}をあるノードの幅優先順，${x}をそのノードの最初の子の位置とする。
+      \align([
+        ${| i = | \func{parent\_rank}{x} = \app{\rank_0}{L, x - 1} |};
+        ${| x = | \func{first\_child\_select}{i} = \app{\select_0}{L, i} + 1 |};
+      ]);
+    }
+    +fig-on-left(
+      include-image-with-height 200pt `fig/louds_bfs.pdf` |> frame 1pt Color.black
+   )<
+      +p{
+        ノードの幅優先順${j}についての帰納法によって示す。幅優先順が${0}の根については
+        具体的に計算すると成立していることがわかる。
+      }
+      +p{
+        次に${0}から${j}まで成立するならば${j + 1}でも成立することを示すが，これは左の図からOK.
+      }
+    >
+  >
+  +frame{LOUDSによる演算}<
+    +p{
+      これまでに説明した4つの演算を組み合わせることで次のような演算が実現できる。${x}は位置。LOUDSをビットベクトルに載せれば全部定数時間で計算できる。
+    }
+    +listing{
+      * ${\func{isleaf}{x} : \ifthen{L\sqbracket{\func{first\_child\_select}{\func{bfs\_rank}{x}}} = 0 }{\mathrm{yes}}{\mathrm{no}}}
+      * ${\func{parent}{x} : \func{bfs\_select}{\func{parent\_rank}{x}}}
+      * ${\func{firstchild}{x} : y = \func{first\_child\_select}{\func{bfs\_rank}{x}}, \ifthen{L\sqbracket{y} = 0}{-1}{y}}
+      * ${\func{lastchild}{x} : y = \app{\select_0}{\func{bfs\_rank}{x} + 1} - 1, \ifthen{L\sqbracket{y} = 0}{-1}{y}}
+      * ${\func{sibling}{x} : \ifthen{L\sqbracket{x + 1} = 0}{-1}{x + 1}}
+      * ${\func{degree}{x} : \ifthen{\func{isleaf}{x}}{0}{ \func{lastchild}{x} - \func{firstchild}{x} + 1 }}
+      * ${\func{child}{x, i} : \ifthen{i \geq \func{degree}{x}}{ -1 }{ \func{firstchild}{x} + i }}
+      * ${\func{childrank}{x} : x - \func{firstchild}{\func{parent}{x}}}
+    }
+  >
+  +frame{LOUDSによる演算}<
+    +fig-on-left(include-image-with-height 300pt `fig/ordered_tree_with_op.pdf` |> frame 1pt Color.black )<
+      +p{
+        さっきの演算たち
+      }
+    >
+  >
+  +frame{ラベル付き木のLOUDS}<
+    +p{
+      Trieとかを作りたいならラベル付き木を扱わなければならない。
+    }
+    +p{
+      ラベル集合${A}の配列${C}を用意する。
+      枝${\paren{u, v}}のラベル${c}を${C\sqbracket{\func{bfs\_rank}{v}} = c}として格納する。
+    }
+    +p{
+      ${x}の子でラベル${c}を持つものを返す${\func{child}{x, c}}は，子を全部見る，もしくはソートしておいて2分探索するなどで計算できる。\footnote{キャッシュに乗るのでそこそこ速い}
+    }
+    +p{
+     情報を単に並べているだけなのでこれは簡潔な構造。
+    }
+  >
+>
+
