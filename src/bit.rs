@@ -16,11 +16,64 @@ pub fn word_rank1(x: usize, i: usize) -> usize {
     unsafe {_popcnt64(a as i64) as usize}
 }
 
+#[cfg(not(target_feature = "sse4.2"))]
+pub fn word_rank1(x: usize, i: usize) -> usize {
+    let (mask, _) = ((1 as usize) << i).overflowing_sub(1);
+    let a = x & mask;
+    a.count_ones() as usize
+}
+
 #[inline]
 #[cfg(all(target_feature = "bmi2", target_feature = "bmi1"))]
 pub fn word_select1(x: usize, i: usize) -> usize {
     use std::arch::x86_64::{_pdep_u64, _tzcnt_u64};
     unsafe { _tzcnt_u64(_pdep_u64(1 << i, x as u64)) as usize }
+}
+
+#[cfg(not(any(target_feature = "bmi2", target_feature = "bmi1")))]
+pub fn word_select1(x: usize, i: usize) -> usize {
+    const M1: u64 = 0x5555555555555555;
+    const M2: u64 = 0x3333333333333333;
+    const M4: u64 = 0x0f0f0f0f0f0f0f0f;
+    const M8: u64 = 0x00ff00ff00ff00ff;
+    let c1 = bit;
+    let c2 = c1 - ((c1 >> 1) & M1);
+    let c4 = ((c2 >> 2) & M2) + (c2 & M2);
+    let c8 = ((c4 >> 4) + c4) & M4;
+    let c16 = ((c8 >> 8) + c8) & M8;
+    let c32 = (c16 >> 16) + c16;
+    let mut i = idx as u64;
+    let mut r = 0;
+    let mut t = c32 & 0x3f;
+    if i >= t {
+        r += 32;
+        i -= t;
+    }
+    t = (c16 >> r) & 0x1f;
+    if i >= t {
+        r += 16;
+        i -= t;
+    }
+    t = (c8 >> r) & 0x0f;
+    if i >= t {
+        r += 8;
+        i -= t;
+    }
+    t = (c4 >> r) & 0x07;
+    if i >= t {
+        r += 4;
+        i -= t;
+    }
+    t = (c2 >> r) & 0x03;
+    if i >= t {
+        r += 2;
+        i -= t;
+    }
+    t = (c1 >> r) & 0x01;
+    if i >= t {
+        r += 1;
+    }
+    r
 }
 
 #[inline]

@@ -1,7 +1,7 @@
 use crate::bit::{WORDSIZE, word_rank1};
 use super::raw_bit_vector::BV;
 use super::RankIndex;
-pub const RANK_LARGE_BLOCKSIZE: usize = 1 << 16;
+pub const RANK_LARGE_BLOCKSIZE: usize = 1 << 15;
 pub const RANK_SMALL_BLOCKSIZE: usize = 256;
 
 #[derive(Debug)]
