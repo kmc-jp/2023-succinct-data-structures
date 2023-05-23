@@ -85,8 +85,9 @@ pub fn word_select0(x: usize, i: usize) -> usize {
 
 #[inline]
 pub fn shrd(x: usize, y: usize, i: usize) -> usize {
-    // xとyを連結した(xの方が上位)ビット列をiだけシフトする
-    x << (WORDSIZE - i) | y >> i
+    // xとyを連結した(xの方が上位)ビット列(すなわちx*2^64 + y)をiだけ右にシフトする
+    let x = x.checked_shl((WORDSIZE - i) as u32).unwrap_or(0);
+    x | (y >> i)
 }
 
 #[cfg(test)]
@@ -131,6 +132,7 @@ mod test {
     fn test_shrd() {
         let a: usize = 0x0f0f_8f8f_013f_1034;
         let b: usize = 0x013f_1034_1340_180a;
+        assert_eq!(shrd(a, b, 0), b);
         assert_eq!(shrd(a, b, 4), 0x4013f10341340180);
     }
 }

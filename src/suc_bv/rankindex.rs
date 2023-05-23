@@ -28,8 +28,8 @@ impl RankIndex for SuccinctRankIndex {
             if WORDSIZE * i % RANK_SMALL_BLOCKSIZE == 0 {
                 small[WORDSIZE * i / RANK_SMALL_BLOCKSIZE] = blocksum;
             }
-            sum += bv.word(i).count_ones() as u64;
-            blocksum += bv.word(i).count_ones() as u16;
+            sum += bv.raw_word(i).count_ones() as u64;
+            blocksum += bv.raw_word(i).count_ones() as u16;
         }
         // DONE:最後のブロックの処理をしていません
         large.push(sum);
@@ -44,9 +44,9 @@ impl RankIndex for SuccinctRankIndex {
         let word_idx = i / WORDSIZE;
         let mut sum = self.large[large_idx] as usize + self.small[small_idx] as usize;
         for j in small_idx * RANK_SMALL_BLOCKSIZE / WORDSIZE..word_idx {
-            sum += bv.word(j).count_ones() as usize;
+            sum += bv.raw_word(j).count_ones() as usize;
         }
-        sum += word_rank1(bv.word(word_idx), i % WORDSIZE);
+        sum += word_rank1(bv.raw_word(word_idx), i % WORDSIZE);
         sum as usize
     }
 }

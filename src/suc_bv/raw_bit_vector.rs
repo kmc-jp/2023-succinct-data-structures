@@ -26,8 +26,13 @@ impl BV {
     pub fn len(&self) -> usize {
         self.length
     }
-    pub fn word(&self, word_idx: usize) -> usize {
+    pub fn raw_word(&self, word_idx: usize) -> usize {
         if word_idx < self.data.len() { self.data[word_idx] } else { 0 }
+    }
+    pub fn word_from_idx(&self, idx: usize) -> usize {
+        let word_idx = idx / WORDSIZE;
+        let rem = idx % WORDSIZE;
+        shrd(self.raw_word(word_idx + 1), self.data[word_idx], rem)
     }
     pub fn not(&mut self) {
         for i in 0..self.data.len() {
@@ -45,9 +50,9 @@ impl BV {
         // shift < 2 * WORDSIZE
         let n = self.data.len();
         for i in 0..(n - 1) {
-            self.data[i] = shrd(self.data[i], self.data[i + 1], shift);
+            self.data[i] = shrd(self.data[i + 1], self.data[i], shift);
         }
-        self.data[n - 1] = shrd(self.data[n - 1], 0, shift);
+        self.data[n - 1] = shrd(0, self.data[n - 1], shift);
         self.length -= shift;
         self.shrink();
     }
@@ -84,5 +89,13 @@ mod test {
         assert_eq!(v1.len(), LENGTH / 3);
         assert_eq!(vec.len(), LENGTH - LENGTH / 3);
         assert_eq!(v1.len() + vec.len(), LENGTH);
+    }
+    #[test]
+    fn test_word_from_idx() {
+        let mut bv = BV::new(LENGTH);
+        bv.set(64, true);
+        assert_eq!(bv.word_from_idx(64), 1);
+        assert_eq!(bv.word_from_idx(62), 0b100);
+        assert_eq!(bv.word_from_idx(65), 0);
     }
 }

@@ -82,7 +82,7 @@ impl DenseSelectBox {
         let mut tree = vec![0; (SELECT_BRANCH.pow(height) - 1) / (SELECT_BRANCH - 1)];
         let inner = (SELECT_BRANCH.pow(height - 1) - 1) / (SELECT_BRANCH - 1);
         for i in 0..blocks {
-            tree[inner + i] = bv.word(i).count_ones() as u16;
+            tree[inner + i] = bv.raw_word(i).count_ones() as u16;
         }
         for i in (0..inner).rev() {
             for j in 0..SELECT_BRANCH {
