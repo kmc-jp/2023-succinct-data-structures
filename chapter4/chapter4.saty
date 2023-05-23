@@ -1,0 +1,73 @@
+@require: class-slydifi/theme/akasaka
+@require: enumitem/enumitem
+@require: easytable/easytable
+@require: figbox/figbox
+@require: colorbox/colorbox
+@require: math
+
+open FigBox
+open EnumitemAlias
+open EasyTableAlias
+
+let-math \bits = ${\mathop{\mathrm{bits}}}
+let-math \lg = ${\mathop{\mathrm{lg}}}
+let-math \access = ${\mathrm{access}}
+let-math \rank = ${\mathrm{rank}}
+let-math \select = ${\mathrm{select}}
+let-math \dummy = ${}
+let-math \binom n k = ${\dummy_{#n} \mathrm{C}_{#k} }
+let-math \func m n = ${\app{\mathrm{#m}}{#n}}
+let-math \ifthen cond t f = ${\mathbin{\mathrm{if}} #cond \mathbin{\mathrm{then}} #t \mathbin{\mathrm{else}} #f}
+
+let-inline \qed = {▪}
+
+let-block ctx +definition ?:wordopt inner = 
+  let ib-word =
+    match wordopt with
+    | None       -> {}
+    | Some(word) -> {\ (#word;).}
+  in
+  read-block ctx '<
+    +Colorbox.colorbox [] ?:({定義 #ib-word;}) (inner);
+  >
+
+let-block ctx +theorem ?:wordopt inner = 
+  let ib-word =
+    match wordopt with
+    | None       -> {}
+    | Some(word) -> {\ (#word;).}
+  in
+  read-block ctx '<
+    +Colorbox.colorbox [] ?:({定理 #ib-word;}) (inner);
+  >
+let-block ctx +lemma ?:wordopt inner = 
+  let ib-word =
+    match wordopt with
+    | None       -> {}
+    | Some(word) -> {\ (#word;).}
+  in
+  read-block ctx '<
+    +Colorbox.colorbox [] ?:({補題 #ib-word;}) (inner);
+  >
+
+
+in
+
+document'<
+  +make-title(|
+    title = {|簡潔データ構造 第4回|LOUDSの実装|};
+    author = {|marimo|};
+    date = {|2023年5月23日|};
+  |);
+  +frame{}<
+    +listing{
+      * ビットベクトルを持っていることを仮定すれば実装は簡単
+      * 構築パートは少し考えた方がよい
+        ** builder templateで作るのがたぶんよい
+        ** 幅優先探索して番号を振り直しながらビットベクトルを構築すればできる
+        ** 番号の振り直しの表とLOUDSを返すbuilderを作ればよい
+        ** ZST\footnote{zero-sized type}が使えるならgenericsで綺麗にラベル付きのも作れるはず
+    }
+  >
+>
+
