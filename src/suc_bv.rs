@@ -1,7 +1,5 @@
-mod rankindex;
 mod selectindex;
 mod raw_bit_vector;
-mod simpleselectindex;
 pub mod suc_index;
 
 use raw_bit_vector::BV;

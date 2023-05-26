@@ -1,5 +1,4 @@
 pub const WORDSIZE: usize = 64;
-const LOG_WORDSIZE: usize = 6;
 
 
 #[inline]
