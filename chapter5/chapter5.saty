@@ -1,0 +1,184 @@
+@require: class-slydifi/theme/akasaka
+@require: enumitem/enumitem
+@require: easytable/easytable
+@require: figbox/figbox
+@require: colorbox/colorbox
+@require: math
+
+open FigBox
+open EnumitemAlias
+open EasyTableAlias
+
+let-math \bits = ${\mathop{\mathrm{bits}}}
+let-math \lg = ${\mathop{\mathrm{lg}}}
+let-math \access = ${\mathrm{access}}
+let-math \rank = ${\mathrm{rank}}
+let-math \select = ${\mathrm{select}}
+let-math \dummy = ${}
+let-math \binom n k = ${\dummy_{#n} \mathrm{C}_{#k} }
+let-math \func m n = ${\app{\mathrm{#m}}{#n}}
+let-math \ifthen cond t f = ${\mathbin{\mathrm{if}} #cond \mathbin{\mathrm{then}} #t \mathbin{\mathrm{else}} #f}
+
+let-inline \qed = {▪}
+
+let-block ctx +definition ?:wordopt inner = 
+  let ib-word =
+    match wordopt with
+    | None       -> {}
+    | Some(word) -> {\ (#word;).}
+  in
+  read-block ctx '<
+    +Colorbox.colorbox [] ?:({定義 #ib-word;}) (inner);
+  >
+
+let-block ctx +theorem ?:wordopt inner = 
+  let ib-word =
+    match wordopt with
+    | None       -> {}
+    | Some(word) -> {\ (#word;).}
+  in
+  read-block ctx '<
+    +Colorbox.colorbox [] ?:({定理 #ib-word;}) (inner);
+  >
+let-block ctx +lemma ?:wordopt inner = 
+  let ib-word =
+    match wordopt with
+    | None       -> {}
+    | Some(word) -> {\ (#word;).}
+  in
+  read-block ctx '<
+    +Colorbox.colorbox [] ?:({補題 #ib-word;}) (inner);
+  >
+
+
+in
+
+document'<
+  +make-title(|
+    title = {|簡潔データ構造 第5回|Wavelet Matrix|};
+    author = {|marimo|};
+    date = {|2023年5月30日|};
+  |);
+  +frame{${\rank}と${\select}の拡張}<
+    +p{
+      ビットベクトルの${\rank}と${\select}は文字列に拡張できる。
+    }
+    +p{
+      アルファベット${A}上の長さ${n}の文字列${S}, ${c \in A}について
+    }
+    +listing{
+      * ${\app{\access}{i} = S\sqbracket{i}}
+      * ${\app{\rank_c}{i} = S\sqbracket{0..i}\text!{の中のcの数を返す}}
+      * ${\app{\select_c}{i} = S\text!{の中の${i}番目のcの位置を返す}}
+    }
+  >
+  +frame{Wavelet Tree}<
+    +p{
+      一旦${\sigma = \| A \|}を2ベキと仮定する。
+    }
+    +theorem?:({Wavelet Tree})<
+      +p{
+        長さ${n}，アルファベットサイズ${\sigma}の文字列に対して，${\paren{n + \app{o}{n}}\lg \sigma + \app{O}{\sigma\lg n}\bits}のデータ構造が存在して，
+        ${\access, \rank, \select}は${\app{O}{\lg \sigma}}時間で計算できる。
+      }
+    >
+  >
+  +frame{Wavelet Tree}<
+    +p{
+      次のように構成されるWavelet Treeによって達成できる。${A}の符号には自明な符号化を使う。
+    }
+    +listing{
+      * 各ノードにビットベクトルが載っているポインタによる完全2分木を作る。
+      * 符号の${i}ビット目のビットは深さ${i}のノードに次のように乗る
+        ** 根のベクトルは長さ${n}で，${B\sqbracket{i} = \app{C}{S\sqbracket{i}} \sqbracket{0}}で定める。
+        ** ノード${v_{b_0 \ldots b_{i - 1}}}のベクトルは
+           *** 符号の先頭が${b_0 \ldots b_{i - 1}}というビット列になっている文字の符号の${i}ビット目のビットを文字列の順番で格納する
+    }
+    +p{
+      これでは分からんので次の図を見る\footnote{基数ソートを途中経過を全部持ってるみたいな感じ}
+    }
+  >
+  +frame{Wavelet Tree}<
+    +fig-center(hconcat?:(align-center)[
+      vconcat?:(align-center)[
+        include-image-with-height 150pt `fig/trivial_code_tree.pdf` |> hvmargin 1pt |> frame 1pt Color.black;
+        gap 2pt;
+        textbox {自明な符号木(の1つ)}
+      ];
+      gap 3pt;
+      vconcat?:(align-center)[
+        include-image-with-height 310pt `fig/wavelet_tree.pdf` |> hvmargin 1pt |> frame 1pt Color.black;
+        gap 2pt;
+        textbox {Wavelet Tree}
+      ];
+    ]);
+  >
+  +frame{Wavelet Tree}<
+    +p{
+      ${\app{\access}{i}}は次のようにする
+    }
+    +listing{
+      * ${ s = V \sqbracket{i} }
+      * ${ i = \app{\rank}{V, i}}
+      * ${d}を${1}から${\lg \sigma}まで
+        ** ${b = V_s \sqbracket{i}}
+        ** ${i = \app{\rank}{V_s, i}}
+        ** ${s = s + b}
+           *** ${s}のうしろに${b}をくっつける
+    }
+  >
+  +frame{Wavelet Tree}<
+    +p{
+      ${\app{\rank_c}{i}}は次のようにする
+    }
+    +listing{
+      * ${t = \app{C}{c}}
+      * ${d}を${0}から${\lg \sigma - 1}まで
+        ** ${b = t \sqbracket{d}}
+        ** ${i = \app{\rank_b}{V_{t\sqbracket{0..d}}, i} }
+    }
+  >
+  +frame{Wavelet Tree}<
+    +p{
+      ${\app{\select_c}{i}}は次のようにする
+    }
+    +listing{
+      * ${t = \app{C}{c}}
+      * ${d}を${\lg \sigma - 1}から${0}まで
+        ** ${b = t \sqbracket{d}}
+        ** ${i = \app{\select}{V_{t\sqbracket{0..d}}, i} }
+    }
+  >
+  +frame{Wavelet Matrix}<
+    +p{
+      Wavelet Treeで，同じ深さのベクトルの長さを全部足すと${n}になる
+    }
+    +p{
+      そうしたらこれを一つのベクトルにしてしまったら簡単になるのでは？
+    }
+    +p{
+      これがWavelet Matrix
+    }
+  >
+  +frame{Wavelet Matrix}<
+    %TODO: accessの計算
+  >
+  +frame{Wavelet Matrix}<
+    %TODO: rankの計算
+  >
+  +frame{Wavelet Matrix}<
+    %TODO: selectの計算
+  >
+  +frame{Huffman符号の使用}<
+    +p{
+      これまでアルファベットのサイズを2ベキと仮定していた。
+    }
+    +p{
+      Wavelet Treeで自明な符号化でなくて，Huffman符号を使うようにすればアルファベットサイズが2べきでなくても簡潔な構造にすることができる。
+    }
+    +p{
+      うれしい
+    }
+  >
+>
+
