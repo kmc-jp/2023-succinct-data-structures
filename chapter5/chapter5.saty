@@ -118,12 +118,12 @@ document'<
       ${\app{\access}{i}}は次のようにする
     }
     +listing{
-      * ${ s = V \sqbracket{i} }
-      * ${ i = \app{\rank}{V, i}}
+      * ${ s \leftarrow V \sqbracket{i} }
+      * ${ i \leftarrow \app{\rank_s}{V, i}}
       * ${d}を${1}から${\lg \sigma}まで
-        ** ${b = V_s \sqbracket{i}}
-        ** ${i = \app{\rank}{V_s, i}}
-        ** ${s = s \circ b}
+        ** ${b \leftarrow V_s \sqbracket{i}}
+        ** ${i \leftarrow \app{\rank_b}{V_s, i}}
+        ** ${s \leftarrow s \circ b}
            *** ${s}のうしろに${b}をくっつける
     }
   >
@@ -132,10 +132,10 @@ document'<
       ${\app{\rank_c}{i}}は次のようにする
     }
     +listing{
-      * ${t = \app{C}{c}}
+      * ${t \leftarrow \app{C}{c}}
       * ${d}を${0}から${\lg \sigma - 1}まで
-        ** ${b = t \sqbracket{d}}
-        ** ${i = \app{\rank_b}{V_{t\sqbracket{0..d}}, i} }
+        ** ${b \leftarrow t \sqbracket{d}}
+        ** ${i \leftarrow \app{\rank_b}{V_{t\sqbracket{0..d}}, i} }
     }
   >
   +frame{Wavelet Tree}<
@@ -143,10 +143,10 @@ document'<
       ${\app{\select_c}{i}}は次のようにする
     }
     +listing{
-      * ${t = \app{C}{c}}
+      * ${t \leftarrow \app{C}{c}}
       * ${d}を${\lg \sigma - 1}から${0}まで
-        ** ${b = t \sqbracket{d}}
-        ** ${i = \app{\select}{V_{t\sqbracket{0..d}}, i} }
+        ** ${b \leftarrow t \sqbracket{d}}
+        ** ${i \leftarrow \app{\select_b}{V_{t\sqbracket{0..d}}, i} }
     }
   >
   +frame{Wavelet Matrix}<
@@ -168,14 +168,12 @@ document'<
       ${\app{\access}{i}}は次のようにする
     }
     +listing{
-      * ${ s = NULL }
+      * ${ s \leftarrow NULL }
       * ${d}を${0}から${\lg \sigma - 1}まで
-        ** ${b = V_d \sqbracket{i}}
-        ** ${s = s \circ b}
-        ** ${w = \app{\rank_0}{V_d, n}}
-        ** ${\ifthen{b = 0}{ i = \app{\rank_0}{V_d, i} }{ i = w + \app{\rank_1}{V_d, i} }}
-      % * ${b = V_d \sqbracket{i + l}}
-      % * ${s = s \circ b}
+        ** ${b \leftarrow V_d \sqbracket{i}}
+        ** ${s \leftarrow s \circ b}
+        ** ${w \leftarrow \app{\rank_0}{V_d, n}}
+        ** ${\ifthen{b = 0}{ i \leftarrow \app{\rank_0}{V_d, i} }{ i \leftarrow w + \app{\rank_1}{V_d, i} }}
     }
   >
   +frame{Wavelet Matrix}<
@@ -183,12 +181,12 @@ document'<
       ${\app{\rank_c}{i}}は次のようにする
     }
     +listing{
-      * ${t = \app{C}{c}}
-      * ${ l, r = 0, i }
+      * ${t \leftarrow \app{C}{c}}
+      * ${ l, r \leftarrow 0, i }
       * ${d}を${0}から${\lg \sigma - 1}まで
-        ** ${b = t \sqbracket{d}}
-        ** ${w = \app{\rank_0}{V_d, n}}
-        ** ${\ifthen{b = 0}{ r = \app{\rank_0}{V_d, i} }{ l = w, r = w + \app{\rank_1}{V_d, r} }}
+        ** ${b \leftarrow t \sqbracket{d}}
+        ** ${w \leftarrow \app{\rank_0}{V_d, n}}
+        ** ${\ifthen{b = 0}{l \leftarrow 0,  r \leftarrow \app{\rank_0}{V_d, i} }{ l \leftarrow w, r \leftarrow w + \app{\rank_1}{V_d, r} }}
       * ${r - l}
     }
   >
