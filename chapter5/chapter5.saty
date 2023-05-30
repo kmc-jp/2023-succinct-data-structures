@@ -123,7 +123,7 @@ document'<
       * ${d}を${1}から${\lg \sigma}まで
         ** ${b = V_s \sqbracket{i}}
         ** ${i = \app{\rank}{V_s, i}}
-        ** ${s = s + b}
+        ** ${s = s \circ b}
            *** ${s}のうしろに${b}をくっつける
     }
   >
@@ -151,33 +151,75 @@ document'<
   >
   +frame{Wavelet Matrix}<
     +p{
-      Wavelet Treeで，同じ深さのベクトルの長さを全部足すと${n}になる
+      Wavelet Treeで，同じ深さのベクトルの長さを全部足すと${n}でかわらない
     }
     +p{
-      そうしたらこれを一つのベクトルにしてしまったら簡単になるのでは？
+      全部を一つのベクトルにしてしまったら簡単になるのでは${\rightarrow}Wavelet Matrix
     }
     +p{
-      これがWavelet Matrix
+      簡単のために深さ${d}のベクトルをつなげたものを${V_d}と書くが，実際は${V_d}は一本のベクトル${V}の一部
     }
   >
   +frame{Wavelet Matrix}<
-    %TODO: accessの計算
+    +p{
+      ${\app{\access}{i}}は次のようにする
+    }
+    +listing{
+      * ${ s = NULL }
+      * ${d}を${0}から${\lg \sigma - 1}まで
+        ** ${b = V_d \sqbracket{i}}
+        ** ${s = s \circ b}
+        ** ${w = \app{\rank_0}{V_d, n}}
+        ** ${\ifthen{b = 0}{ i = \app{\rank_0}{V_d, i} }{ i = w + \app{\rank_1}{V_d, i} }}
+      % * ${b = V_d \sqbracket{i + l}}
+      % * ${s = s \circ b}
+    }
   >
   +frame{Wavelet Matrix}<
-    %TODO: rankの計算
+    +p{
+      ${\app{\rank_c}{i}}は次のようにする
+    }
+    +listing{
+      * ${t = \app{C}{c}}
+      * ${ l, r = 0, i }
+      * ${d}を${0}から${\lg \sigma - 1}まで
+        ** ${b = t \sqbracket{d}}
+        ** ${w = \app{\rank_0}{V_d, n}}
+        ** ${\ifthen{b = 0}{ r = \app{\rank_0}{V_d, i} }{ l = w, r = w + \app{\rank_1}{V_d, r} }}
+      * ${r - l}
+    }
   >
   +frame{Wavelet Matrix}<
-    %TODO: selectの計算
+    +p{
+      ${\app{\select_c}{i}}については疑似コードを書くと長いのでお気持ちだけ書くと
+    }
+    +listing{
+      * まず${\app{C}{c}}を使って降りていって，${c}がいる範囲を知る
+      * この範囲で${\app{\select_b}{i}}をつかって位置を知る
+      * 逆向きに上がっていく
+        ** ${\rank}で降りていたことから分かるように逆演算の${\select}で上がる
+    }
   >
   +frame{Huffman符号の使用}<
     +p{
       これまでアルファベットのサイズを2ベキと仮定していた。
     }
     +p{
-      Wavelet Treeで自明な符号化でなくて，Huffman符号を使うようにすればアルファベットサイズが2べきでなくても簡潔な構造にすることができる。
+      Wavelet Treeで自明な符号化でなくて，Huffman符号\footnote{prefix codeならなんでもOK}を使うようにすればアルファベットサイズが2べきでなくても簡潔な構造にすることができる。
     }
     +p{
       うれしい
+    }
+  >
+  +frame{その他の演算}<
+    +p{
+      詳しくは述べないが，符号化が順序を保つ場合\footnote{先のHuffman Codeは順序を保たないことに注意}\footnote{この条件を満たすような符号は条件が無い場合に比べて多少長くなることが知られている。最適なものをHu-Tucker Algorithmで構成できる。}いろいろできる
+    }
+    +listing{
+      * 区間内の文字の列挙
+      * 区間内のある範囲に含まれる文字の総数
+      * 区間内のk番目に大きい文字の位置
+      * etc.
     }
   >
 >
