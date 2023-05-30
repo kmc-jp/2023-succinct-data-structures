@@ -159,6 +159,9 @@ document'<
     +p{
       簡単のために深さ${d}のベクトルをつなげたものを${V_d}と書くが，実際は${V_d}は一本のベクトル${V}の一部
     }
+    +fig-center(vconcat[
+      include-image 250pt `fig/wavelet_matrix.pdf` |> hvmargin 1pt |> frame 1pt Color.black;
+    ]);
   >
   +frame{Wavelet Matrix}<
     +p{
