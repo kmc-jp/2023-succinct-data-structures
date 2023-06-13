@@ -186,7 +186,8 @@ document'<
       * ${d}を${0}から${\lg \sigma - 1}まで
         ** ${b \leftarrow t \sqbracket{d}}
         ** ${w \leftarrow \app{\rank_0}{V_d, n}}
-        ** ${\ifthen{b = 0}{l \leftarrow \app{\rank_0}{V_d, l},  r \leftarrow \app{\rank_0}{V_d, r} }{ l \leftarrow w + \app{\rank_1}{V_d, l}, r \leftarrow w + \app{\rank_1}{V_d, r} }}
+        ** ${\mathbin{\mathrm{if}} b == 0 \mathbin{\mathrm{then}}l \leftarrow \app{\rank_0}{V_d, l},  r \leftarrow \app{\rank_0}{V_d, r}}
+        ** ${\mathbin{\mathrm{else}} l \leftarrow w + \app{\rank_1}{V_d, l}, r \leftarrow w + \app{\rank_1}{V_d, r}  }
       * ${r - l}
     }
   >
